@@ -11,4 +11,5 @@ game_board = [[0 for x in range(9) ] for x in range(9)]
 
 #position of grid
 
-gridPos = [20, 100]
+gridPos = [75, 100]
+cellSize = 50
