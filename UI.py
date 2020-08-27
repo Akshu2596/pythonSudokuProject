@@ -10,7 +10,7 @@ class App:
         pygame.init()
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.running = True
-        self.grid = game_board
+        self.grid = game_board2
         self.selected = None
         self.mouse_pos = None
         self.state = "playing"
@@ -18,6 +18,7 @@ class App:
         self.menubuttons = []
         self.endbuttons = []
         self.loadButtons()
+        self.font = pygame.font.SysFont("arial", cellSize // 2)
 
     def run(self):
         while self.running:
@@ -54,12 +55,20 @@ class App:
         for buttons in self.playingbuttons:
             buttons.draw(self.window)
 
+        self.drawNumbers(self.window)
         self.drawGrid(self.window)
         if self.selected:
             self.drawSelection(self.window, self.selected)
         pygame.display.update()
 
         ##### HELP METHODS #####
+
+    def drawNumbers(self, window):
+        for yidx, row in enumerate(self.grid):
+            for xidx, num in enumerate(row):
+                if num != 0:
+                    pos = [(xidx * cellSize) + gridPos[0], (yidx * cellSize) + gridPos[1]]
+                    self.textOnBoard(window, str(num), pos)
 
     def drawSelection(self, window, pos):
         pygame.draw.rect(window, GREEN,
@@ -68,16 +77,10 @@ class App:
     def drawGrid(self, window):
         pygame.draw.rect(window, BLACK, (gridPos[0], gridPos[1], WIDTH - 150, HEIGHT - 150), 2)
         for x in range(9):
-            if x % 3:
-                pygame.draw.line(window, BLACK, (gridPos[0] + (x * cellSize), gridPos[1]),
-                                 (gridPos[0] + (x * cellSize), gridPos[1] + 450))
-                pygame.draw.line(window, BLACK, (gridPos[0], gridPos[1] + (x * cellSize)),
-                                 (gridPos[0] + 450, gridPos[1] + (x * cellSize)))
-            else:
-                pygame.draw.line(window, BLACK, (gridPos[0] + (x * cellSize), gridPos[1]),
-                                 (gridPos[0] + (x * cellSize), gridPos[1] + 450), 2)
-                pygame.draw.line(window, BLACK, (gridPos[0], gridPos[1] + (x * cellSize)),
-                                 (gridPos[0] + 450, gridPos[1] + (x * cellSize)), 2)
+            pygame.draw.line(window, BLACK, (gridPos[0] + (x * cellSize), gridPos[1]),
+                             (gridPos[0] + (x * cellSize), gridPos[1] + 450), 2 if x % 3 == 0 else 1)
+            pygame.draw.line(window, BLACK, (gridPos[0], gridPos[1] + (x * cellSize)),
+                             (gridPos[0] + 450, gridPos[1] + (x * cellSize)), 2 if x % 3 == 0 else 1)
 
     def mouseOnGrid(self):
         if self.mouse_pos[0] < gridPos[0] or self.mouse_pos[1] < gridPos[1]:
@@ -88,3 +91,11 @@ class App:
 
     def loadButtons(self):
         self.playingbuttons.append(Button(20, 40, 80, 40))
+
+    def textOnBoard(self, window, text, pos):
+        font = self.font.render(text, False, BLACK)
+        fontWidth = font.get_width()
+        fontHeight = font.get_height()
+        pos[0] += (cellSize - fontWidth)//2
+        pos[1] += (cellSize - fontHeight)//2
+        window.blit(font, pos)
