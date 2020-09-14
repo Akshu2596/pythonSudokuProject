@@ -7,6 +7,7 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (7, 208, 182)
 PINK = (255, 223, 241)
+LOCKEDCLR = (255,153,127)
 
 # boards
 

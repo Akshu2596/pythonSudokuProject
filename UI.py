@@ -17,7 +17,8 @@ class App:
         self.playingbuttons = []
         self.menubuttons = []
         self.endbuttons = []
-        self.loadButtons()
+        self.lockedCells = []
+        self.load()
         self.font = pygame.font.SysFont("arial", cellSize // 2)
 
     def run(self):
@@ -36,6 +37,8 @@ class App:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 self.running = False
+
+            # when user clicks
             if event.type == pygame.MOUSEBUTTONDOWN:
                 selected = self.mouseOnGrid()
                 if selected:
@@ -43,6 +46,15 @@ class App:
                 else:
                     print("not on board")
                     self.selected = None
+
+            # when user types a key
+            if event.type == pygame.KEYDOWN:
+                if self.selected != None and self.selected not in self.lockedCells:
+                    if self.isInt(event.unicode):
+                        #print(event.unicode)
+                        #print(self.selected[0])
+                        #print(self.selected[1])
+                        self.grid[self.selected[1]][self.selected[0]] = int(event.unicode)
 
     def playing_update(self):
         self.mouse_pos = pygame.mouse.get_pos()
@@ -55,13 +67,21 @@ class App:
         for buttons in self.playingbuttons:
             buttons.draw(self.window)
 
-        self.drawNumbers(self.window)
-        self.drawGrid(self.window)
         if self.selected:
             self.drawSelection(self.window, self.selected)
+
+        self.shadeLockedCells(self.window, self.lockedCells)
+
+        self.drawNumbers(self.window)
+        self.drawGrid(self.window)
         pygame.display.update()
 
         ##### HELP METHODS #####
+
+    def shadeLockedCells(self, window, locked):
+        for cell in locked:
+            pygame.draw.rect(window, LOCKEDCLR, ((cell[0] * cellSize) + gridPos[0], (cell[1] * cellSize) + gridPos[1],
+                                                 cellSize, cellSize))
 
     def drawNumbers(self, window):
         for yidx, row in enumerate(self.grid):
@@ -96,6 +116,25 @@ class App:
         font = self.font.render(text, False, BLACK)
         fontWidth = font.get_width()
         fontHeight = font.get_height()
-        pos[0] += (cellSize - fontWidth)//2
-        pos[1] += (cellSize - fontHeight)//2
+        pos[0] += (cellSize - fontWidth) // 2
+        pos[1] += (cellSize - fontHeight) // 2
         window.blit(font, pos)
+
+    def load(self):
+        self.loadButtons()
+
+        # settings for determining locked cells
+
+        for yidx, row in enumerate(self.grid):
+            for xidx, num in enumerate(row):
+                if num != 0:
+                    self.lockedCells.append([xidx, yidx])
+
+        print(self.lockedCells)
+
+    def isInt(self, string):
+        try:
+            int(string)
+            return True
+        except:
+            return False
