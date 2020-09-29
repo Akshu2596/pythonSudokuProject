@@ -10,10 +10,13 @@ class App:
         pygame.init()
         self.window = pygame.display.set_mode((WIDTH, HEIGHT))
         self.running = True
-        self.grid = game_board2
+        self.grid = finished_board
         self.selected = None
         self.mouse_pos = None
         self.state = "playing"
+        self.finished = False
+        self.cellChanged = False
+        self.incorrectCells = []
         self.playingbuttons = []
         self.menubuttons = []
         self.endbuttons = []
@@ -51,15 +54,24 @@ class App:
             if event.type == pygame.KEYDOWN:
                 if self.selected != None and self.selected not in self.lockedCells:
                     if self.isInt(event.unicode):
-                        #print(event.unicode)
-                        #print(self.selected[0])
-                        #print(self.selected[1])
+                        # print(event.unicode)
+                        # print(self.selected[0])
+                        # print(self.selected[1])
+                        # cell changed
                         self.grid[self.selected[1]][self.selected[0]] = int(event.unicode)
+                        self.cellChanged = True
 
     def playing_update(self):
         self.mouse_pos = pygame.mouse.get_pos()
         for buttons in self.playingbuttons:
             buttons.update(self.mouse_pos)
+
+        if self.cellChanged:
+            self.incorrectCells = []
+            if self.allCellsDone():
+                # check if all cells are done correctly
+                self.checkAllCells()
+                print(self.incorrectCells)
 
     def playing_draw(self):
         self.window.fill(PINK)
@@ -71,10 +83,42 @@ class App:
             self.drawSelection(self.window, self.selected)
 
         self.shadeLockedCells(self.window, self.lockedCells)
+        self.shadeIncorrectCells(self.window, self.incorrectCells)
 
         self.drawNumbers(self.window)
         self.drawGrid(self.window)
         pygame.display.update()
+
+        self.cellChanged = False
+
+        ##### BOARD CHECK METHODS #####
+
+    def allCellsDone(self):
+        for row in self.grid:
+            for number in row:
+                if number == 0:
+                    return False
+        return True
+
+    def checkAllCells(self):
+        self.checkRows()
+        #self.checkColumns()
+        #self.checkGrid()
+
+
+    def checkRows(self):
+        for yidx, row in enumerate(self.grid):
+            possibles = [1,2,3,4,5,6,7,8,9]
+            for xidx in range(9):
+
+                if self.grid[yidx][xidx] in possibles:
+                    possibles.remove(self.grid[yidx][xidx])
+
+                else:
+                    if [xidx,yidx] not in self.lockedCells:
+                        self.incorrectCells.append([xidx,yidx])
+
+
 
         ##### HELP METHODS #####
 
@@ -83,6 +127,10 @@ class App:
             pygame.draw.rect(window, LOCKEDCLR, ((cell[0] * cellSize) + gridPos[0], (cell[1] * cellSize) + gridPos[1],
                                                  cellSize, cellSize))
 
+    def shadeIncorrectCells(self, window, incorrect):
+        for cell in incorrect:
+            pygame.draw.rect(window, INCORRECTCLR, ((cell[0] * cellSize) + gridPos[0], (cell[1] * cellSize) + gridPos[1],
+                                                 cellSize, cellSize))
     def drawNumbers(self, window):
         for yidx, row in enumerate(self.grid):
             for xidx, num in enumerate(row):
